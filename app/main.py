@@ -1,14 +1,17 @@
 import os
 import time
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import FastAPI, HTTPException, Response, status, Depends
 from pydantic import BaseModel
 import uvicorn
 from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from sqlalchemy.orm import Session
+import models
+from database import engine, get_db
 
+models.Base.metadata.create_all(bind=engine)
 load_dotenv()
-
 app = FastAPI()
 
 
@@ -33,6 +36,11 @@ while True:
     except Exception as error:
         print(f"Failed to connect database. Error: {error}")
         time.sleep(2)
+
+
+@app.get("/sqlalchemy")
+def get_session(db: Session = Depends(get_db)):
+    return {"status": "Success"}
 
 
 @app.get("/")
@@ -82,7 +90,6 @@ async def delete_post(id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} not found",
         )
-
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -94,7 +101,6 @@ async def update_post(id: int, post: Post):
     )
     updated_post = cursor.fetchone()
     conn.commit()
-
     if not updated_post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
