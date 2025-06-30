@@ -1,46 +1,14 @@
-import os
-import time
 from fastapi import FastAPI, HTTPException, Response, status, Depends
-from pydantic import BaseModel
 import uvicorn
 from dotenv import load_dotenv
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from sqlalchemy.orm import Session
 import models
+from schemas import Post
 from database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 load_dotenv()
 app = FastAPI()
-
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-
-
-while True:
-    try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            database=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            cursor_factory=RealDictCursor,
-        )
-        cursor = conn.cursor()
-        print(f"Database connection successful.")
-        break
-    except Exception as error:
-        print(f"Failed to connect database. Error: {error}")
-        time.sleep(2)
-
-
-@app.get("/sqlalchemy")
-def get_session(db: Session = Depends(get_db)):
-    return {"status": "Success"}
 
 
 @app.get("/")
@@ -49,29 +17,29 @@ async def root():
 
 
 @app.get("/posts")
-async def get_posts():
-    cursor.execute("""SELECT * FROM post LIMIT 100;""")
-    posts = cursor.fetchall()
+async def get_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    if not posts:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No posts found",
+        )
     return {"success": True, "data": posts}
 
 
-# POST /posts
 @app.post("/posts")
-async def create_posts(post: Post, response: Response):
-    cursor.execute(
-        """INSERT INTO post (title, content) VALUES (%s, %s) RETURNING *;""",
-        (post.title, post.content),
-    )
-    new_post = cursor.fetchone()
-    conn.commit()  # finalize and push the changes to the DB
+async def create_posts(post: Post, response: Response, db: Session = Depends(get_db)):
+    new_post = models.Post(**post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     response.status_code = status.HTTP_201_CREATED
     return {"success": True, "data": new_post}
 
 
 @app.get("/posts/{id}")
-async def get_post(id: int):
-    cursor.execute("""SELECT * FROM post WHERE id = %s;""", (str(id),))
-    post = cursor.fetchone()
+async def get_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -81,32 +49,29 @@ async def get_post(id: int):
 
 
 @app.delete("/posts/{id}")
-async def delete_post(id: int):
-    cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *;""", (str(id),))
-    deleted_post = cursor.fetchone()
-    conn.commit()
-    if not deleted_post:
+async def delete_post(id: int, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    if post_query.first() == None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} not found",
         )
+    post_query.delete(synchronize_session=False)
+    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/posts/{id}")
-async def update_post(id: int, post: Post):
-    cursor.execute(
-        """UPDATE post SET title = %s, content = %s WHERE id = %s RETURNING *;""",
-        (post.title, post.content, str(id)),
-    )
-    updated_post = cursor.fetchone()
-    conn.commit()
-    if not updated_post:
+async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    if post_query.first() == None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} not found",
         )
-    return {"result": True, "data": updated_post}
+    post_query.update(post.model_dump(), synchronize_session=False)
+    db.commit()
+    return {"result": True, "data": post_query.first()}
 
 
 if __name__ == "__main__":

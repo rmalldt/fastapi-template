@@ -16,7 +16,7 @@ SessionLocal = sessionmaker(autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-# Dependency: Get connection to DB and create DB Session
+# Create DB session for every request to the specific API endpoints and autoclose once done.
 def get_db():
     db = SessionLocal()
     try:
