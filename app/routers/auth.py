@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app import oauth2
 from ..schemas import UserResponse, UserLogin
 from .. import models, oauth2
-from ..utils import hash, verify
+from ..utils import hash_pw, verify_pw
 from ..database import SessionDep
 
 
@@ -24,7 +24,7 @@ async def register_user(user_data: UserLogin, session: SessionDep):
         raise HTTPException(status_code=400, detail="Email already exists")
 
     # Hash the password
-    hashed_pass = hash(user_data.password)
+    hashed_pass = hash_pw(user_data.password)
     user_data.password = hashed_pass
 
     # Insert the user with hashed password to DB
@@ -51,7 +51,7 @@ async def login_user(
         raise HTTPException(status_code=404, detail="Invalid credentials")
 
     # Check password
-    if not verify(form_data.password, user.password):
+    if not verify_pw(form_data.password, user.password):
         raise HTTPException(status_code=404, detail="Invalid credentials")
 
     # Create a token

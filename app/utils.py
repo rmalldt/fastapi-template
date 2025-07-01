@@ -7,9 +7,9 @@ from passlib.context import CryptContext
 pw_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def hash(password: str) -> str:
+def hash_pw(password: str) -> str:
     return pw_context.hash(password)
 
 
-def verify(plain_pw: str, hashed_pw: str) -> bool:
+def verify_pw(plain_pw: str, hashed_pw: str) -> bool:
     return pw_context.verify(plain_pw, hashed_pw)

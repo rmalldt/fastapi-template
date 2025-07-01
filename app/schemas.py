@@ -1,6 +1,7 @@
 """Defines the shape of Request and Response"""
 
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 # ----- User
@@ -20,6 +21,15 @@ class UserResponse(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    id: Optional[str] = None
 
 
 # ----- Post
