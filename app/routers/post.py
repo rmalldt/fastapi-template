@@ -4,7 +4,7 @@ from .. import models
 from ..database import SessionDep
 
 
-router = APIRouter(prefix="/posts")
+router = APIRouter(prefix="/posts", tags=["Post"])
 
 
 @router.get("/", response_model=list[PostResponse])
