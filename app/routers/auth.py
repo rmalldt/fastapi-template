@@ -1,6 +1,9 @@
-from fastapi import HTTPException, status, APIRouter
+from typing import Annotated
+from fastapi import Depends, HTTPException, status, APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
+from app import oauth2
 from ..schemas import UserResponse, UserLogin
-from .. import models
+from .. import models, oauth2
 from ..utils import hash, verify
 from ..database import SessionDep
 
@@ -8,7 +11,9 @@ from ..database import SessionDep
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse
+)
 async def register_user(user_data: UserLogin, session: SessionDep):
     user = (
         session.query(models.DBUser)
@@ -31,16 +36,24 @@ async def register_user(user_data: UserLogin, session: SessionDep):
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login_user(user_credentials: UserLogin, session: SessionDep):
+async def login_user(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: SessionDep,
+):
     # Check email
     user: models.DBUser = (
         session.query(models.DBUser)
-        .filter(models.DBUser.email == user_credentials.email)
+        .filter(models.DBUser.email == form_data.username)
         .first()
     )
 
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(status_code=404, detail="Invalid credentials")
 
     # Check password
-    pw_match = verify(user_credentials.password, user.password)
+    if not verify(form_data.password, user.password):
+        raise HTTPException(status_code=404, detail="Invalid credentials")
+
+    # Create a token
+    access_token = oauth2.create_access_token(data={"user_id": user.id})
+    return {"access_token": access_token, "token_type": "bearer"}
