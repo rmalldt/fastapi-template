@@ -11,6 +11,12 @@ models.Base.metadata.create_all(bind=engine)
 # FastAPI app
 app = FastAPI()
 
+
+@app.get("/")
+async def root():
+    return {"message": "This is a FastAPI CRUD template API"}
+
+
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(post.router)

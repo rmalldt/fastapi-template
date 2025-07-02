@@ -1,8 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
-from app import oauth2
-from ..schemas import UserResponse, UserLogin
+from ..schemas import Token, UserResponse, UserLogin
 from .. import models, oauth2
 from ..utils import hash_pw, verify_pw
 from ..database import SessionDep
@@ -23,11 +22,11 @@ async def register_user(user_data: UserLogin, session: SessionDep):
     if user:
         raise HTTPException(status_code=400, detail="Email already exists")
 
-    # Hash the password
-    hashed_pass = hash_pw(user_data.password)
-    user_data.password = hashed_pass
+    # Hash password
+    hashed_pw = hash_pw(user_data.password)
+    user_data.password = hashed_pw
 
-    # Insert the user with hashed password to DB
+    # Insert user into DB
     new_user = models.DBUser(**user_data.model_dump())
     session.add(new_user)
     session.commit()
@@ -40,20 +39,13 @@ async def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDep,
 ):
-    # Check email
-    user: models.DBUser = (
-        session.query(models.DBUser)
-        .filter(models.DBUser.email == form_data.username)
-        .first()
-    )
-
+    user = oauth2.authenticate_user(form_data.username, form_data.password, session)
     if not user:
-        raise HTTPException(status_code=404, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    # Check password
-    if not verify_pw(form_data.password, user.password):
-        raise HTTPException(status_code=404, detail="Invalid credentials")
-
-    # Create a token
-    access_token = oauth2.create_access_token(data={"user_id": user.id})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = oauth2.create_access_token(data={"sub": str(user.id)})
+    return Token(access_token=access_token, token_type="bearer")
