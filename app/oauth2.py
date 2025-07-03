@@ -49,12 +49,12 @@ def verify_access_token(token: str, credentials_exception) -> TokenData:
         if id is None:
             raise credentials_exception
         token_data = TokenData(id=id)
-    except InvalidTokenError as err:
+    except InvalidTokenError:
         raise credentials_exception
     return token_data
 
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
+def get_current_userid(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

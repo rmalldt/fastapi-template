@@ -5,16 +5,14 @@ from .database import engine
 from .routers import auth, user, post
 
 
-# Create Database tables
 models.Base.metadata.create_all(bind=engine)
 
-# FastAPI app
 app = FastAPI()
 
 
 @app.get("/")
 async def root():
-    return {"message": "This is a FastAPI CRUD template API"}
+    return {"message": "A CRUD API template built with FastAPI"}
 
 
 app.include_router(auth.router)
