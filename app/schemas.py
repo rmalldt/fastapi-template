@@ -34,11 +34,12 @@ class TokenData(BaseModel):
 class PostBase(BaseModel):
     title: str
     content: str
-    published: bool = False
+    published: bool = True
 
 
 # Inherits PostBase
 class PostResponse(PostBase):
     id: int
-    user_id: int
     created_at: datetime
+    user_id: int
+    user: UserOut

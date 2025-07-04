@@ -9,17 +9,23 @@ from .schemas import TokenData
 from .database import SessionDep
 from . import models
 from .utils import verify_pw
+from .config import settings
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+
 
 # The parameter `tokenUrl` should be the user login endpoint which receives the user password
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 def authenticate_user(username: str, password: str, session: SessionDep):
-    user = session.query(models.DBUser).filter(models.DBUser.email == username).first()
+    user = (
+        session.query(models.UserAccount)
+        .filter(models.UserAccount.email == username)
+        .first()
+    )
     if not user:
         return False
     if not verify_pw(password, user.password):
@@ -54,7 +60,7 @@ def verify_access_token(token: str, credentials_exception) -> TokenData:
 
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep
-) -> models.DBUser:
+) -> models.UserAccount:
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -62,8 +68,14 @@ def get_current_user(
     )
 
     token_data = verify_access_token(token, credential_exception)
-    user = (
-        session.query(models.DBUser).filter(models.DBUser.id == token_data.id).first()
-    )
 
+    user = (
+        session.query(models.UserAccount)
+        .filter(models.UserAccount.id == token_data.id)
+        .first()
+    )
+    if user is None:
+        raise credential_exception
+
+    print(f"Logged in: {user.email}")
     return user

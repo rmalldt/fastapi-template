@@ -9,7 +9,7 @@ router = APIRouter(prefix="/users", tags=["User"])
 
 @router.get("/{id}", response_model=UserOut)
 async def get_user(id: int, session: SessionDep):
-    user = session.query(models.DBUser).filter(models.DBUser.id == id).first()
+    user = session.query(models.UserAccount).filter(models.UserAccount.id == id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

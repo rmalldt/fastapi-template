@@ -16,7 +16,7 @@ This will:
 """
 
 
-class DBUser(Base):
+class UserAccount(Base):
     __tablename__ = "user_account"
 
     id: Mapped[int] = mapped_column(
@@ -29,7 +29,7 @@ class DBUser(Base):
     )
 
 
-class DBPost(Base):
+class Post(Base):
     __tablename__ = "post"
 
     id: Mapped[int] = mapped_column(
@@ -47,3 +47,4 @@ class DBPost(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user_account.id", ondelete="CASCADE"), nullable=False
     )
+    user: Mapped["UserAccount"] = relationship()

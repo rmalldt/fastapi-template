@@ -1,16 +1,14 @@
 import os
 from typing import Annotated
-from dotenv import load_dotenv
 from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from .config import settings
 
-load_dotenv()
-DB_URL = os.getenv("DB_URL")
 
+DB_URL = f"postgresql://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}"
 Base = declarative_base()
-
 if DB_URL:
     engine = create_engine(DB_URL)
 else:

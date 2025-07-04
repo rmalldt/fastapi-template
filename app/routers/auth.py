@@ -13,8 +13,8 @@ router = APIRouter(prefix="/auth", tags=["Authorization"])
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserOut)
 async def register_user(user_data: UserIn, session: SessionDep):
     user = (
-        session.query(models.DBUser)
-        .filter(models.DBUser.email == user_data.email)
+        session.query(models.UserAccount)
+        .filter(models.UserAccount.email == user_data.email)
         .first()
     )
     if user:
@@ -25,7 +25,7 @@ async def register_user(user_data: UserIn, session: SessionDep):
     user_data.password = hashed_pw
 
     # Insert user into DB
-    new_user = models.DBUser(**user_data.model_dump())
+    new_user = models.UserAccount(**user_data.model_dump())
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
