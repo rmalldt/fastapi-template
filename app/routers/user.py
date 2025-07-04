@@ -1,5 +1,5 @@
 from fastapi import HTTPException, APIRouter
-from ..schemas import UserResponse
+from ..schemas import UserOut
 from .. import models
 from ..database import SessionDep
 
@@ -7,7 +7,7 @@ from ..database import SessionDep
 router = APIRouter(prefix="/users", tags=["User"])
 
 
-@router.get("/{id}", response_model=UserResponse)
+@router.get("/{id}", response_model=UserOut)
 async def get_user(id: int, session: SessionDep):
     user = session.query(models.DBUser).filter(models.DBUser.id == id).first()
     if not user:

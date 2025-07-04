@@ -1,23 +1,19 @@
 """Defines the shape of Request and Response"""
 
 from datetime import datetime
+from pickletools import int4
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 # ----- User
 
 
-class UserCreate(BaseModel):
+class UserIn(BaseModel):
     email: EmailStr
     password: str
 
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class UserResponse(BaseModel):
+class UserOut(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
@@ -44,4 +40,5 @@ class PostBase(BaseModel):
 # Inherits PostBase
 class PostResponse(PostBase):
     id: int
+    user_id: int
     created_at: datetime

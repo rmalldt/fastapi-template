@@ -24,7 +24,6 @@ def authenticate_user(username: str, password: str, session: SessionDep):
         return False
     if not verify_pw(password, user.password):
         return False
-    print(f"USER AUTHENTICATED: {user}")
     return user
 
 
@@ -33,7 +32,6 @@ def create_access_token(data: dict):
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    print(f"ACCESS TOKEN: {encoded_jwt}")
     return encoded_jwt
 
 
@@ -54,10 +52,18 @@ def verify_access_token(token: str, credentials_exception) -> TokenData:
     return token_data
 
 
-def get_current_userid(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep
+) -> models.DBUser:
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    return verify_access_token(token, credential_exception)
+
+    token_data = verify_access_token(token, credential_exception)
+    user = (
+        session.query(models.DBUser).filter(models.DBUser.id == token_data.id).first()
+    )
+
+    return user

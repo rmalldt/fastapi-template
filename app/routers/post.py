@@ -11,7 +11,7 @@ router = APIRouter(prefix="/posts", tags=["Post"])
 @router.get("", response_model=list[PostResponse])
 async def get_posts(
     session: SessionDep,
-    current_id: Annotated[TokenData, Depends(oauth2.get_current_userid)],
+    user: Annotated[models.DBUser, Depends(oauth2.get_current_user)],
 ):
     """
     This function depends on `oauth.get_current_user` that forces user to login
@@ -21,8 +21,11 @@ async def get_posts(
     It passes the token which comes from the request. The token gets decoded, the
     user id is extracted and returned to this function.
     """
-    if current_id.id:
-        print(f"CURRENT ID: {int(current_id.id)}")
+
+    print(f"USER: {user.id}")
+    print(f"USER: {user.email}")
+    print(f"USER: {user.password}")
+
     posts = session.query(models.DBPost).all()
     if not posts:
         raise HTTPException(status_code=404, detail="No posts found")
@@ -33,7 +36,7 @@ async def get_posts(
 async def create_posts(
     post_data: PostBase,
     session: SessionDep,
-    current_id: Annotated[TokenData, Depends(oauth2.get_current_userid)],
+    user: Annotated[TokenData, Depends(oauth2.get_current_user)],
 ):
     new_post = models.DBPost(**post_data.model_dump())
     session.add(new_post)
@@ -46,7 +49,7 @@ async def create_posts(
 async def get_post(
     id: int,
     session: SessionDep,
-    current_id: Annotated[TokenData, Depends(oauth2.get_current_userid)],
+    user: Annotated[TokenData, Depends(oauth2.get_current_user)],
 ):
     post = session.query(models.DBPost).filter(models.DBPost.id == id).first()
     if not post:
@@ -59,7 +62,7 @@ async def update_post(
     id: int,
     post_data: PostBase,
     session: SessionDep,
-    current_id: Annotated[TokenData, Depends(oauth2.get_current_userid)],
+    user: Annotated[TokenData, Depends(oauth2.get_current_user)],
 ):
     post = session.query(models.DBPost).filter(models.DBPost.id == id).first()
     if not post:
@@ -78,7 +81,7 @@ async def update_post(
 async def delete_post(
     id: int,
     session: SessionDep,
-    current_id: Annotated[TokenData, Depends(oauth2.get_current_userid)],
+    user: Annotated[TokenData, Depends(oauth2.get_current_user)],
 ):
     post = session.query(models.DBPost).filter(models.DBPost.id == id).first()
     if not post:

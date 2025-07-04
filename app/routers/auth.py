@@ -1,19 +1,17 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
-from ..schemas import Token, UserResponse, UserLogin
+from ..schemas import Token, UserOut, UserIn
 from .. import models, oauth2
-from ..utils import hash_pw, verify_pw
+from ..utils import hash_pw
 from ..database import SessionDep
 
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 
-@router.post(
-    "/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse
-)
-async def register_user(user_data: UserLogin, session: SessionDep):
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserOut)
+async def register_user(user_data: UserIn, session: SessionDep):
     user = (
         session.query(models.DBUser)
         .filter(models.DBUser.email == user_data.email)
@@ -34,7 +32,7 @@ async def register_user(user_data: UserLogin, session: SessionDep):
     return new_user
 
 
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 async def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDep,
@@ -48,4 +46,4 @@ async def login_user(
         )
 
     access_token = oauth2.create_access_token(data={"sub": str(user.id)})
-    return Token(access_token=access_token, token_type="bearer")
+    return {"access_token": access_token, "token_type": "bearer"}

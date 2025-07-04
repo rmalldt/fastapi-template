@@ -1,7 +1,6 @@
 from datetime import datetime
-import datetime
-from sqlalchemy import Boolean, Column, Identity, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, Column, ForeignKey, Identity, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from .database import Base
@@ -16,8 +15,6 @@ This will:
     - Ensure our model is compatible with both SQLAlchemcy and static type checkers.
 """
 
-# ----- DBUser
-
 
 class DBUser(Base):
     __tablename__ = "user_account"
@@ -27,12 +24,9 @@ class DBUser(Base):
     )
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
     )
-
-
-# ----- DBPost
 
 
 class DBPost(Base):
@@ -45,8 +39,11 @@ class DBPost(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
     published: Mapped[str] = mapped_column(
-        Boolean, nullable=False, server_default="False"
+        Boolean, nullable=False, server_default="True"
     )
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user_account.id", ondelete="CASCADE"), nullable=False
     )
