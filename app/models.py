@@ -48,3 +48,14 @@ class Post(Base):
         Integer, ForeignKey("user_account.id", ondelete="CASCADE"), nullable=False
     )
     user: Mapped["UserAccount"] = relationship()
+
+
+class Vote(Base):
+    __tablename__ = "vote"
+
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
+    )
+    post_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("post.id", ondelete="CASCADE"), primary_key=True
+    )

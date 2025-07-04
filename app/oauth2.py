@@ -68,7 +68,6 @@ def get_current_user(
     )
 
     token_data = verify_access_token(token, credential_exception)
-
     user = (
         session.query(models.UserAccount)
         .filter(models.UserAccount.id == token_data.id)

@@ -3,7 +3,7 @@
 from datetime import datetime
 from pickletools import int4
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 # ----- User
 
@@ -43,3 +43,8 @@ class PostResponse(PostBase):
     created_at: datetime
     user_id: int
     user: UserOut
+
+
+class VoteIn(BaseModel):
+    post_id: int
+    direction: int = Field(le=1)
