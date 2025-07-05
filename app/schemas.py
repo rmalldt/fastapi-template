@@ -4,7 +4,9 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
-# ----- User
+from app.models import Post
+
+# ---------- User
 
 
 class UserIn(BaseModel):
@@ -27,7 +29,7 @@ class TokenData(BaseModel):
     id: Optional[str] = None
 
 
-# ----- Post
+# ---------- Post
 
 
 class PostBase(BaseModel):
@@ -43,6 +45,18 @@ class PostOut(PostBase):
     user: UserOut
 
 
+class PostWithVoteOut(BaseModel):
+    post: PostOut
+    votes: int
+
+
+# ---------- Vote
+
+
 class VoteIn(BaseModel):
     post_id: int
-    direction: int = Field(le=1)
+
+
+class VoteOut(BaseModel):
+    post_id: int
+    user_id: int

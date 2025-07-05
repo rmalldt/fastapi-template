@@ -71,5 +71,4 @@ def get_current_user(
     user = session.scalar(stmt)
     if user is None:
         raise credential_exception
-
     return user
