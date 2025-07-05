@@ -1,4 +1,3 @@
-import os
 from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import create_engine

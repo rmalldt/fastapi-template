@@ -5,9 +5,11 @@ from jwt.exceptions import InvalidTokenError
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import select
 from .schemas import TokenData
 from .database import SessionDep
-from . import models
+from .models import UserAccount
 from .utils import verify_pw
 from .config import settings
 
@@ -21,15 +23,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 def authenticate_user(username: str, password: str, session: SessionDep):
-    user = (
-        session.query(models.UserAccount)
-        .filter(models.UserAccount.email == username)
-        .first()
-    )
+    stmt = select(UserAccount).where(UserAccount.email == username)
+    user = session.scalar(stmt)
     if not user:
-        return False
+        return None
     if not verify_pw(password, user.password):
-        return False
+        return None
     return user
 
 
@@ -60,7 +59,7 @@ def verify_access_token(token: str, credentials_exception) -> TokenData:
 
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep
-) -> models.UserAccount:
+) -> UserAccount:
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -68,13 +67,9 @@ def get_current_user(
     )
 
     token_data = verify_access_token(token, credential_exception)
-    user = (
-        session.query(models.UserAccount)
-        .filter(models.UserAccount.id == token_data.id)
-        .first()
-    )
+    stmt = select(UserAccount).where(UserAccount.id == token_data.id)
+    user = session.scalar(stmt)
     if user is None:
         raise credential_exception
 
-    print(f"Logged in: {user.email}")
     return user

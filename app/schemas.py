@@ -1,7 +1,6 @@
 """Defines the shape of Request and Response"""
 
 from datetime import datetime
-from pickletools import int4
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
@@ -37,8 +36,7 @@ class PostBase(BaseModel):
     published: bool = True
 
 
-# Inherits PostBase
-class PostResponse(PostBase):
+class PostOut(PostBase):
     id: int
     created_at: datetime
     user_id: int
