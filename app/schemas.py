@@ -60,3 +60,4 @@ class VoteIn(BaseModel):
 class VoteOut(BaseModel):
     post_id: int
     user_id: int
+    direction: str

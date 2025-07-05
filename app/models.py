@@ -59,3 +59,4 @@ class Vote(Base):
     post_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("post.id", ondelete="CASCADE"), primary_key=True
     )
+    direction: Mapped[str] = mapped_column(String, nullable=False, server_default="up")
