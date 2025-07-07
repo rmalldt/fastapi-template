@@ -1,5 +1,4 @@
 from operator import or_
-from turtle import pos
 from typing import Annotated
 from fastapi import Depends, HTTPException, Response, status, APIRouter
 from sqlalchemy import func, select, update
