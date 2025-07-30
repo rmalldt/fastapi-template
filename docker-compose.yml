@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    ports:
+      - 4000:8000
+    env_file:
+      - .env
+  postgres-db:
+    image:
+    environment:
+      - PORT=${PORT}
+      - DB_URL=${DB_URL}
+    env_file:
+      - .env
