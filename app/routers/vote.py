@@ -1,4 +1,3 @@
-from operator import and_
 from typing import Annotated
 from fastapi import Depends, Response, status, APIRouter
 
@@ -6,7 +5,7 @@ from ..schemas import VoteIn, VoteOut
 from .. import oauth2
 from ..models import UserAccount, Vote
 from ..database import SessionDep
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 

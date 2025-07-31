@@ -6,8 +6,7 @@ from .routers import auth, user, post, vote
 from fastapi.middleware.cors import CORSMiddleware
 
 
-# Now the migration is managed with Alembic
-# models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 

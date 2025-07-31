@@ -1,5 +1,4 @@
 from typing import Annotated
-from fastapi.security import OAuth2
 import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import Depends, status, HTTPException

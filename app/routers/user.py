@@ -4,7 +4,7 @@ from ..schemas import UserOut
 from ..models import UserAccount
 from ..database import SessionDep
 
-
+# Group the Path operations by base path (prefix) and group the api docs by name (tags)
 router = APIRouter(prefix="/users", tags=["User"])
 
 
