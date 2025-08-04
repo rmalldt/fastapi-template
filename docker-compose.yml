@@ -2,13 +2,15 @@ services:
   api:
     build: .
     ports:
-      - 4000:8000
+      - 8000:8000
     env_file:
-      - .env
+      - ./.env
   postgres-db:
-    image:
-    environment:
-      - PORT=${PORT}
-      - DB_URL=${DB_URL}
+    image: postgres
     env_file:
-      - .env
+      - ./db.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
